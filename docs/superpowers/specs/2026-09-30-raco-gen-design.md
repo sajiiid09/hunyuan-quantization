@@ -42,7 +42,7 @@ weight budget (12 GB VRAM + ~29 GB RAM − runtime overhead).
 │  + RacoRemote    │──────┐               │     │                                     │
 │    nodes         │      │   Cloudflare  │     ▼                                     │
 └──────────────────┘      ├──► Tunnel ───►│ Gateway (FastAPI, 127.0.0.1:8100)         │
-┌──────────────────┐      │ gen.<domain>  │  API key · queue · templates · TTL        │
+┌──────────────────┐      │ gen.sajiid.me  │  API key · queue · templates · TTL        │
 │ Open WebUI       │──────┘               │     │                    │                │
 └──────────────────┘                      │     ▼                    ▼                │
                                           │ ComfyUI (127.0.0.1:8188) Image3 worker    │
@@ -57,8 +57,12 @@ Units and their single responsibilities:
 2. **Gateway.** The only public-facing process. It checks the API key, validates uploads,
    runs the job queue, fills in workflow templates, serves results and deletes expired
    files. Clients address *tasks*, never model names.
-3. **cloudflared.** A named Cloudflare Tunnel mapping `gen.<domain>` to `127.0.0.1:8100`.
-   No router ports are opened.
+3. **cloudflared.** A new named Cloudflare Tunnel (`raco-gen`) mapping `gen.sajiid.me` to
+   `127.0.0.1:8100`. The zone `sajiid.me` is already on Cloudflare nameservers, and `gen` is
+   unused as of 2026-09-30. It runs with `--protocol http2`, because this network drops QUIC
+   (UDP 7844), as found in `automated-call-centre/scripts/dev.sh`. The desktop only ever
+   used quick tunnels, so there is no config to reuse. The server is authorised once with
+   `cloudflared tunnel login`. No router ports are opened.
 4. **Image3 worker** (added by section 8). A separate Python process with the custom
    weight-streaming loader. The gateway routes image tasks to it once it passes evaluation.
 5. **Client adapters.** The `ComfyUI-RacoRemote` node pack and an Open WebUI video tool.
@@ -113,7 +117,7 @@ separate copies are listed in the manifest.
 
 ## 5. API
 
-Base URL: `https://gen.<domain>`. All routes except `GET /v1/health` require authentication.
+Base URL: `https://gen.sajiid.me`. All routes except `GET /v1/health` require authentication.
 
 ### Authentication
 
@@ -241,7 +245,7 @@ on `raco-ai-server`, with no rented hardware, and untuned quantization comes fir
      cached hidden states for a whole batch of prompts through it, one denoising step at a
      time.
    - Batching means each of the 8 steps reads the weights only once: about 8 × 169 GB of
-     reads, roughly 1–2 h in total.
+     reads, roughly 2–4 h in total, compute-bound.
    - Prompts: about 256, made up of `eval/prompts`, a T2I-CoReBench subset and edit tasks,
      with a hidden-state cache of about 10 GB on disk.
    - Records REAP saliency per expert: router gate weight × norm of the expert's output.
@@ -299,7 +303,7 @@ models stay in production.
 
 ### Open WebUI
 
-- **Images:** OpenAI image engine, base URL `https://gen.<domain>/v1`, the API key, any model
+- **Images:** OpenAI image engine, base URL `https://gen.sajiid.me/v1`, the API key, any model
   name. Edits are enabled if the installed Open WebUI version supports OpenAI image edits;
   this is checked during setup.
 - **Video:** an Open WebUI Tool `generate_video(prompt, duration_s, use_attached_image)`.
@@ -352,17 +356,31 @@ models stay in production.
    - a 10 s chained video;
    - a forced OOM retry;
    - a scan confirming no media remains after TTL + 1 min.
-3. **External tests** through `gen.<domain>` from another network: an image request with a
+3. **External tests** through `gen.sajiid.me` from another network: an image request with a
    wait longer than 100 s, and a video download.
 4. **Client tests:**
    - the node pack on the desktop (192.168.10.6; HTTP only, so no GPU is needed);
    - Open WebUI image generation and edit, and the video tool.
 
-## 12. Open inputs from the user
+## 12. Evaluation set
 
-- The **domain name**, and whether its DNS is already on Cloudflare. This is needed before
-  tunnel setup; everything else can be built and tested over LAN first.
-- Sudo on the server (already provided) for the systemd units and `cloudflared` install.
+Stored in the repo under `eval/prompts/`, each item with yes/no `checks` for the Qwen2.5-VL
+judge:
+
+- **`t2i.jsonl`: 50 prompts.** Covers counting, spatial layout, attribute binding, text
+  rendering, world knowledge, reasoning, negation, product, people, scene, style, infographic,
+  long/complex prompts and cultural context. Items 49–50 are image-to-video sources.
+- **`edit.jsonl`: 15 tasks.** Instruction edits, restyles, same subject in a new scene,
+  multi-reference and layout-keep edits. Their sources are `t2i` outputs.
+- **`i2v.jsonl`: 12 tasks.** 4–10 s videos, including 8 s and 10 s chained clips and one
+  edit→video pipeline.
+
+The same set serves as the smoke and regression suite for the stopgap models (section 11) and
+as the Image3 gate (section 8).
+
+## 13. Open inputs from the user
+
+- A one-time `cloudflared tunnel login` authorisation in a browser, for `sajiid.me`.
+- Sudo on the server (already provided) for the systemd units and the `cloudflared` install.
 - BIOS power-on-after-AC-loss setting (manual step at the machine).
-- The ~50 real prompts and ~15 edit tasks for the Image3 reference set, and access to
-  Tencent's hosted Hunyuan service to produce the references.
+- A Tencent Hunyuan account (web or Tencent Cloud) to produce the Image3 reference images.
