@@ -1,0 +1,6 @@
+models/
+jobs/
+*.sqlite
+.env
+__pycache__/
+.venv/
