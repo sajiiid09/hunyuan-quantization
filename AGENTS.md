@@ -5,8 +5,8 @@ Same content as `CLAUDE.md`. Both files must stay in sync.
 ## Summary
 
 raco-gen is a self-hosted image/video generation server on a 12 GB RTX 4070 Ti, exposed
-through `https://gen.sajiid.me`. The full design spec is at
-`docs/superpowers/specs/2026-09-30-raco-gen-design.md`.
+through `https://gen.sajiid.me` via ComfyUI's web UI and native API. The full design spec
+is at `docs/superpowers/specs/2026-09-30-raco-gen-design.md`.
 
 ## Agent rules
 
@@ -15,6 +15,8 @@ through `https://gen.sajiid.me`. The full design spec is at
 3. Append to `docs/LOG.md` every session — performance, bottlenecks, improvements.
 4. Commit before and after significant work.
 5. Never commit secrets, models, or job data.
+6. Do not reintroduce the HunyuanImage-3.0 quant track or the FastAPI gateway without
+   explicit user approval.
 
 ## Key paths
 
@@ -26,7 +28,6 @@ through `https://gen.sajiid.me`. The full design spec is at
 | `docs/LOG.md` | Append-only performance/bottleneck log |
 | `eval/prompts/` | Eval set (50 t2i, 15 edit, 12 i2v) |
 | `models/` | Model weights (gitignored) |
-| `jobs/` | Per-job folders, 1 h TTL (gitignored) |
 
 ## Repo sync
 
