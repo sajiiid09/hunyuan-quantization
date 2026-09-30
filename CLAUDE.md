@@ -19,6 +19,8 @@ machine. The same content is in `AGENTS.md`.
 - Do not touch existing services on ports 22, 5432, 7070, 8554, 8888, 8889, 631.
 - Do not commit `models/`, `jobs/`, `.env`, or any secrets.
 - Do not modify the spec's hardware constraints (section 2) without user approval.
+- Do not reintroduce the HunyuanImage-3.0 quant track or the FastAPI gateway without
+  explicit user approval.
 
 ## docs/LOG.md format
 

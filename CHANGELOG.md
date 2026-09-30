@@ -1,10 +1,17 @@
 # CHANGELOG — raco-gen
 
-## 2026-10-01
+## 2026-10-01 — Architecture pivot
 
-- **Phase 0 complete.** Root documentation written: README, CLAUDE, AGENTS, PLAN,
-  CHANGELOG, docs/LOG. Git repo initialized on server and cloned to local.
-- Repo topology: server is canonical, local is a clone synced over SSH.
+- **Removed** HunyuanImage-3.0 sub-3-bit quantization track (section 8). Untuned 2–3-bit
+  quantization is at the known breaking point; calibration needs hardware this server
+  doesn't have.
+- **Removed** FastAPI gateway. Tunnel now maps directly to ComfyUI on 8188.
+- **New image stack:** FLUX.1 [dev] GGUF Q5_K_M + uncensored/realism LoRAs.
+- **New video stack:** Wan 2.1 I2V 14B Q4_K_M (primary), HunyuanVideo-1.5 (fast preview),
+  HunyuanVideo-Avatar (talking heads).
+- **New API:** ComfyUI native (POST /prompt, WebSocket /ws). No custom routes.
+- **New retention:** 24 h cleanup cron instead of 1 h TTL sweeper.
+- Root docs updated: README, PLAN, CLAUDE, AGENTS, CHANGELOG, LOG.
 
 ## 2026-09-30
 
