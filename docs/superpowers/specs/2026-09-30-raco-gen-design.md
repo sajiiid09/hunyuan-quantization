@@ -176,49 +176,109 @@ Outputs are PNG for images and MP4 (H.264, yuv420p, 24 fps) for video.
 
 Only one GPU job runs at a time.
 
-## 8. HunyuanImage-3.0 custom quant track (parallel R&D)
+## 8. HunyuanImage-3.0 custom quant track (parallel R&D, local only)
 
 **Goal:** HunyuanImage-3.0-Instruct-Distil at **≤ 30 GB**, serving both `image.generate` and
-`image.edit` with no client-visible change.
+`image.edit` with no client-visible change. **Constraint (user decision):** everything runs
+on `raco-ai-server`, with no rented hardware, and untuned quantization comes first.
 
-**Architecture facts** (from `config.json`):
-- 32 layers, hidden size 4096, 64 routed experts plus 1 shared expert per layer, top-8
-  routing, expert intermediate size 3072.
-- The routed experts hold about 77 of the 83B parameters.
+### Facts that shape the recipe (research 2026-09-30)
 
-1. **Reference set.** About 50 of the user's real prompts and about 15 edit tasks (with source
-   images). Ground-truth outputs are generated on **Tencent's hosted Hunyuan image service**.
-   Its version and settings may differ from the open weights, so it serves as a quality
-   anchor, not a pixel reference.
-2. **Download** the BF16 weights (~169 GB) to `models/image3-bf16/`. Delete them once the
-   chosen quant is accepted.
-3. **Layer-wise calibration.** Stream one layer (~5 GB BF16) at a time onto the GPU. Pass the
-   cached hidden states of all calibration prompts through it at each of the 8 distilled
-   timesteps. Record router statistics per expert, and keep that layer's inputs and outputs
-   for quantization calibration.
-4. **Candidates:**
-   - **B:** prune the ~35% least-used experts per layer, renormalise the router over the
-     remaining experts, NF4 elsewhere.
-   - **A:** all experts at ~2.5 bits average, quantized with calibration data (HQQ or
-     GPTQ-style); attention, shared expert and embeddings at 4–8 bits.
-   - **C:** prune ~25% and quantize experts to 3 bits.
-   - Built in order B, then A, then C. Stop early if a candidate passes.
-5. **Runtime (Image3 worker).**
-   - Resident on the GPU: about 7 GB of weights plus activations.
-   - The rest sits in pinned RAM and is streamed per layer with double-buffered asynchronous
-     copies.
-   - The recaption and think modes are disabled; they are too slow when streaming.
-   - Before an Image3 job, the gateway calls ComfyUI's `/free` to unload its models.
-6. **Evaluation.** Every candidate renders the whole reference set.
-   - Qwen2.5-VL scores how well each image matches its prompt.
-   - Seconds per image are recorded.
-   - A local side-by-side comparison page shows reference and candidate images together.
-   - **Pass = the user approves** the comparison, and time per image is ≤ 3 min.
-7. **Swap-in.** The winner serves both image tasks. HunyuanImage-2.1 and Qwen-Image-Edit
-   stay installed as automatic fallbacks if the worker fails.
+- **Structure** (from `config.json` and the modeling code):
+  - 32 layers, hidden size 4096.
+  - Per layer: 64 routed experts plus 1 `shared_mlp`, top-8 routing, fp32 router `mlp.gate.wg`.
+  - Each expert is a separate `HunyuanMLP` with `nn.Linear` layers `gate_and_up_proj`
+    (4096→6144, fused) and `down_proj` (3072→4096).
+  - Attention is a fused `self_attn.qkv_proj` plus `o_proj`.
+  - The routed experts hold ~77B parameters; everything else is ~5.7B.
+- **No sub-4-bit build that runs exists.**
+  - The lone 31.5 GB `convertor/hyimg3-q2` GGUF has no documentation and nothing can load it.
+  - llama.cpp and stable-diffusion.cpp support requests were closed without being built.
+- **Intel's AutoRound builds:** MXFP4 experts already shift composition compared with BF16
+  (PSNR ≈ 19.5 dB, against 31.6 dB for MXFP8). The loss comes from the experts, not attention.
+- **Diffusion models in general:** untuned quantization shows visible damage around 3 bits
+  and collapses at 2 bits. Text rendering is the first thing to break.
+- **Expert pruning:** REAP keeps quality well at 25% on 128-expert models. On Moonlight,
+  which has 64 experts like this model, it kept only 79.8% at 25%. **The cap is 25%.**
+- **Calibrated quantization** (AutoRound, GPTQ) needs about 190 GB of RAM plus an 80 GB GPU
+  for this model, so it is ruled out by the local-only constraint. HQQ and SDNQ need no
+  calibration and can quantize one shard at a time within 32 GB of RAM.
+- The EricRollei NF4 build keeps `self_attn`, VAE, vision model, patch/time embeddings and
+  `final_layer` in BF16. We follow the same skip list, except attention goes to 8-bit.
 
-**Risk:** no candidate may pass. In that case the stopgap models remain in production, and
-the RAM upgrade stays the fallback option.
+### Size budget
+
+- **Non-expert part: ~5.5 GB.** Attention, `shared_mlp`, `wte` and `lm_head` at 8-bit; ViT,
+  VAE, router, norms and time embeddings in BF16.
+- **Experts: ≤ 24 GB.**
+
+### Stages
+
+0. **References.**
+   - Run the 50 text-to-image prompts and the 15 edit tasks in `eval/prompts/` on **Tencent's
+     hosted HunyuanImage-3.0**: hunyuan.tencent.com/image for text-to-image, and the
+     Hunyuan-Image-3.0-Instruct chat for edits.
+   - Tencent Cloud `hy-image-v3` (~$0.03 per image, 0–3 reference images) is the scripted
+     alternative.
+   - We also use the free Apache-2.0 **T2I-CoReBench-Images** set (1,080 prompts × 4
+     HunyuanImage-3.0 base-model images) for scores judged by Qwen2.5-VL.
+   - These references anchor quality judgements only. They are not pixel-for-pixel
+     references, because the versions and settings differ.
+1. **Download** the BF16 Instruct-Distil weights (~169 GB) to `models/image3-bf16/`. They are
+   deleted after a candidate is accepted.
+2. **Error check per method.** For 2 sample layers, quantize the experts with **HQQ** and with
+   **SDNQ (with SVD low-rank correction)** at 2, 3 and 4 bits. Measure the relative output
+   error on real activations captured from a single streamed forward pass. Pick the method
+   with the lower error at 2–3 bits.
+3. **L1, no pruning, untuned (~29 GB).**
+   - All 64 experts at ~2.5 bpw average.
+   - The first and last 2 layers at 4-bit, the rest a mix of 3-bit and 2-bit: `down_proj` at
+     3-bit, `gate_and_up_proj` at 2-bit.
+   - Quantized shard by shard from BF16.
+4. **Evaluate L1** (see below). If it passes, go to stage 7.
+5. **Local profiling pass** for pruning statistics.
+   - A custom layer-sequential sweep: load one BF16 layer at a time from NVMe and push
+     cached hidden states for a whole batch of prompts through it, one denoising step at a
+     time.
+   - Batching means each of the 8 steps reads the weights only once: about 8 × 169 GB of
+     reads, roughly 1–2 h in total.
+   - Prompts: about 256, made up of `eval/prompts`, a T2I-CoReBench subset and edit tasks,
+     with a hidden-state cache of about 10 GB on disk.
+   - Records REAP saliency per expert: router gate weight × norm of the expert's output.
+6. **L2: 25% pruned (64 → 48 experts), 3-bit experts (~28 GB).**
+   - Drop the 16 lowest-saliency experts per layer and slice the matching `gate.wg` rows.
+     Top-8 routing stays.
+   - Quantize the 48 remaining experts at 3-bit, with the first and last 2 layers at 4-bit.
+   - Evaluate. If this also fails, the track stops and the decision goes back to the user:
+     rent hardware for calibrated AutoRound, upgrade RAM, or stay on the stopgap models.
+7. **Runtime (Image3 worker).**
+   - Resident on the GPU: all non-expert weights (~5.5 GB) plus activations.
+   - Routed experts sit in pinned RAM and are streamed layer by layer on a dedicated CUDA
+     stream, prefetching layer n+1 while layer n computes. Dequantize happens on the GPU.
+   - Estimate: ~2 s per step bus-bound, so **~20–40 s per image** at 8 steps.
+   - `recaption` and `think_recaption` are disabled; token-by-token decoding over PCIe 3.0
+     takes minutes.
+   - Before an Image3 job, the gateway calls ComfyUI's `/free`.
+
+### Evaluation (every candidate)
+
+- Render `eval/prompts/t2i.jsonl` and `edit.jsonl` with fixed seeds, plus 200 T2I-CoReBench
+  prompts.
+- Qwen2.5-VL answers each item's `checks` (yes/no). The pass rate is compared against the
+  Tencent references and the CoReBench HunyuanImage-3.0 images.
+- Also record: text-rendering accuracy (the `text-rendering` category), seconds per image,
+  and peak VRAM and RAM.
+- The `i2v.jsonl` tasks run on the candidate's outputs, to confirm they animate cleanly with
+  HunyuanVideo-1.5.
+- A local side-by-side page shows reference and candidate. **Pass = the user approves**, and
+  each image takes ≤ 3 min.
+
+**Swap-in:** the winner serves both image tasks. HunyuanImage-2.1 and Qwen-Image-Edit stay
+installed as automatic fallbacks.
+
+**Risk:** 2–3 bits without calibration sits right at the known breaking point, and 25%
+pruning may hurt a 64-expert model. Neither candidate may pass, in which case the stopgap
+models stay in production.
 
 ## 9. Clients
 
