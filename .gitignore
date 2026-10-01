@@ -4,3 +4,7 @@ jobs/
 .env
 __pycache__/
 .venv/
+comfyui/
+.bootstrap-venv/
+logs/
+.cache/
