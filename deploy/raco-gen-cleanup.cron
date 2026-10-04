@@ -1,0 +1,4 @@
+# raco-gen cleanup — delete files older than 24 h from ComfyUI output/input/temp.
+# Install (needs sudo):
+#   sudo install -m 644 deploy/raco-gen-cleanup.cron /etc/cron.d/raco-gen-cleanup
+0 3 * * * raco-ai find /home/raco-ai/Documents/raco-gen/comfyui/output /home/raco-ai/Documents/raco-gen/comfyui/input /home/raco-ai/Documents/raco-gen/comfyui/temp -type f -mmin +1440 -delete 2>/dev/null

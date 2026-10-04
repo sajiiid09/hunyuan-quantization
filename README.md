@@ -49,11 +49,43 @@ curl -X POST https://gen.sajiid.me/prompt \
 wscat -c wss://gen.sajiid.me/ws
 ```
 
+## Keeping outputs on your machine
+
+The server is a compute engine, not a storage bucket. The `raco-gen` client submits
+workflows to the server, then **downloads every output to your machine and deletes
+it from the server** as soon as it is generated. Nothing accumulates on the server.
+
+```bash
+# Text → image (FLUX.1 [dev])
+python3 scripts/client/raco_gen.py generate \
+  --workflow workflows/flux-t2i.json --prompt "a serene mountain lake at sunset"
+
+# Image → video (Wan 2.1 I2V) — uploads your image, keeps the clip local
+python3 scripts/client/raco_gen.py generate \
+  --workflow workflows/wan-i2v.json --prompt "smooth camera push-in" --image photo.png
+
+# Text → video (HunyuanVideo 1.5)
+python3 scripts/client/raco_gen.py generate \
+  --workflow workflows/hunyuan-t2v.json --prompt "a red panda climbing a mossy tree"
+
+# Pull anything still sitting on the server (e.g. from the browser UI)
+python3 scripts/client/raco_gen.py sync
+```
+
+Outputs land in `~/Documents/raco-gen/output/` as `<prompt_id>_<file>`. Video is
+saved as `.webp` by the server and converted to H.264 `.mp4` locally. Pass
+`--keep-on-server` to leave a copy on the server. The browser UI at
+`https://gen.sajiid.me/` still renders on the server — use the client when you
+want the files to stay on your machine.
+
 ## Repository layout
 
 ```
 ├── docs/superpowers/specs/2026-09-30-raco-gen-design.md  # full design spec
 ├── eval/prompts/          # 50 t2i + 15 edit + 12 i2v tasks with yes/no checks
+├── workflows/             # API-format workflow templates (flux-t2i, wan-i2v, hunyuan-t2v)
+├── scripts/client/        # raco-gen client — generate + sync, keeps outputs local
+├── scripts/download_models.py  # pinned model downloader with SHA-256 verification
 ├── docs/LOG.md            # append-only performance / bottleneck / improvement log
 ├── models/                # all weights + MANIFEST.md (gitignored)
 └── CLAUDE.md / AGENTS.md  # agent conventions
