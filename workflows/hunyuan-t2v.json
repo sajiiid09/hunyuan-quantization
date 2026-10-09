@@ -1,0 +1,68 @@
+{
+  "1": {
+    "class_type": "DualCLIPLoader",
+    "inputs": {
+      "clip_name1": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "clip_name2": "byt5_small_glyphxl_fp16.safetensors",
+      "type": "hunyuan_video_15"
+    }
+  },
+  "2": {
+    "class_type": "VAELoader",
+    "inputs": { "vae_name": "hunyuanvideo15_vae_fp16.safetensors" }
+  },
+  "3": {
+    "class_type": "UnetLoaderGGUF",
+    "inputs": { "unet_name": "hunyuanvideo15_480p_t2v_cfg_distilled-Q6_K.gguf" }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "a red panda climbing a mossy tree, soft daylight", "clip": ["1", 0] }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "", "clip": ["1", 0] }
+  },
+  "6": {
+    "class_type": "HunyuanVideo15ImageToVideo",
+    "inputs": {
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "vae": ["2", 0],
+      "width": 848,
+      "height": 480,
+      "length": 81,
+      "batch_size": 1
+    }
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["3", 0],
+      "seed": 0,
+      "steps": 25,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "positive": ["6", 0],
+      "negative": ["6", 1],
+      "latent_image": ["6", 2]
+    }
+  },
+  "8": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": { "samples": ["7", 0], "vae": ["2", 0], "tile_size": 512, "overlap": 64 }
+  },
+  "9": {
+    "class_type": "SaveAnimatedWEBP",
+    "inputs": {
+      "images": ["8", 0],
+      "filename_prefix": "raco/hunyuan-t2v",
+      "fps": 16,
+      "lossless": false,
+      "quality": 90,
+      "method": "default"
+    }
+  }
+}

@@ -13,16 +13,16 @@ Last updated: 2026-10-01
 
 ## Phase 1 — ComfyUI + model installation
 
-- [ ] Install ComfyUI (pinned commit) + uv venv on server
-- [ ] Install ComfyUI-GGUF + ComfyUI-WanVideoWrapper custom nodes
-- [ ] Download FLUX.1 [dev] GGUF Q5_K_M + text encoders + VAE
-- [ ] Download Wan 2.1 I2V 14B GGUF Q4_K_M (480p + 720p) + CLIP Vision + VAE
-- [ ] Download HunyuanVideo-1.5 480P I2V Step-Distilled + T2V CFG-distilled
-- [ ] Download HunyuanVideo-Avatar + TeaCache workflow
-- [ ] Download uncensored/realism LoRAs for FLUX
-- [ ] Write ComfyUI workflow templates for each task (API format)
-- [ ] Set up cloudflared named tunnel to gen.sajiid.me
-- [ ] systemd units for ComfyUI + cloudflared
+- [x] Install ComfyUI (pinned commit) + uv venv on server — v0.38.0, torch 2.11.0+cu130
+- [x] Install ComfyUI-GGUF + ComfyUI-WanVideoWrapper custom nodes
+- [ ] Download FLUX.1 [dev] GGUF Q5_K_M + text encoders + VAE — clip_l, ae, loras verified; flux-dev, flux-t5 stalled on SHA check
+- [x] Download Wan 2.1 I2V 14B GGUF Q4_K_M (480p + 720p) + CLIP Vision + VAE + UMT5 — all 5 files (~30.8 GB) verified & live in ComfyUI
+- [ ] Download HunyuanVideo-1.5 480P T2V CFG-distilled — qwen, byt5, vae, sigclip verified; hunyuan-t2v at 28%
+- [ ] Download HunyuanVideo-Avatar + TeaCache workflow — not in manifest (deferred)
+- [x] Download uncensored/realism LoRAs for FLUX — flux-realism-xlabs, flux-super-realism
+- [x] Write ComfyUI workflow templates for each task (API format) — workflows/{flux-t2i,wan-i2v,hunyuan-t2v}.json
+- [x] Set up cloudflared named tunnel to gen.sajiid.me — live, gen.sajiid.me → 200
+- [x] systemd units for ComfyUI + cloudflared — both enabled + active
 - [ ] Smoke tests: each task end to end, record time and peak VRAM
 
 ## Phase 2 — Client access
@@ -47,4 +47,7 @@ Last updated: 2026-10-01
 
 ## Current status
 
-Phase 0 complete. Next: Phase 1 — install ComfyUI and all models on the server.
+Phase 1 in progress. ComfyUI 0.38.0 + custom nodes + tunnel + systemd are done.
+Model download running (HF CDN throttles the server to ~5 MB/s; ~30 GB left).
+Client (`scripts/client/raco_gen.py`) keeps all generations on the local machine.
+Next: finish downloads → smoke tests → Phase 2.

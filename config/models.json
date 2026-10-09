@@ -1,0 +1,146 @@
+[
+  {
+    "id": "flux-dev",
+    "repo": "unsloth/FLUX.1-dev-GGUF",
+    "revision": "9b8240b0ca0ce2001b373191d3324f09194c7061",
+    "file": "flux1-dev-Q5_K_M.gguf",
+    "path": "diffusion_models/flux1-dev-Q5_K_M.gguf",
+    "size": 8419501344,
+    "sha256": "516908172087d6ad684a4e31d93ab3d98ae6273c6bc83d6293b3273593fa2c00"
+  },
+  {
+    "id": "flux-clip",
+    "repo": "comfyanonymous/flux_text_encoders",
+    "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
+    "file": "clip_l.safetensors",
+    "path": "text_encoders/clip_l.safetensors",
+    "size": 246144152,
+    "sha256": "660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd"
+  },
+  {
+    "id": "flux-t5",
+    "repo": "comfyanonymous/flux_text_encoders",
+    "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
+    "file": "t5xxl_fp8_e4m3fn.safetensors",
+    "path": "text_encoders/t5xxl_fp8_e4m3fn.safetensors",
+    "size": 4893934904,
+    "sha256": "7d330da4816157540d6bb7838bf63a0f02f573fc48ca4d8de34bb0cbfd514f09"
+  },
+  {
+    "id": "flux-vae",
+    "repo": "second-state/FLUX.1-Fill-dev-GGUF",
+    "revision": "f4370bf5aedfa33a5776cdf1b92cc492b48cdcff",
+    "file": "ae.safetensors",
+    "path": "vae/ae.safetensors",
+    "size": 335304388,
+    "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38"
+  },
+  {
+    "id": "wan-480p",
+    "repo": "city96/Wan2.1-I2V-14B-480P-gguf",
+    "revision": "b4b6b3b3f0f64975fb33b1d5d1a46ca24e065f03",
+    "file": "wan2.1-i2v-14b-480p-Q4_K_M.gguf",
+    "path": "diffusion_models/wan2.1-i2v-14b-480p-Q4_K_M.gguf",
+    "size": 11341184384,
+    "sha256": "d91f7139acadb42ea05cdf97b311e5099f714f11fbe4d90916500e2f53cbba82"
+  },
+  {
+    "id": "wan-720p",
+    "repo": "city96/Wan2.1-I2V-14B-720P-gguf",
+    "revision": "ea36d5421cc5f5c57e50067a432a8b2c16dd0dae",
+    "file": "wan2.1-i2v-14b-720p-Q4_K_M.gguf",
+    "path": "diffusion_models/wan2.1-i2v-14b-720p-Q4_K_M.gguf",
+    "size": 11341184384,
+    "sha256": "ffecd91e4b636d8e3e43f3fa388218158ba447109547bde777c6d67ef4fe42a4"
+  },
+  {
+    "id": "wan-vision",
+    "repo": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+    "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+    "file": "split_files/clip_vision/clip_vision_h.safetensors",
+    "path": "clip_vision/clip_vision_h.safetensors",
+    "size": 1264219396,
+    "sha256": "64a7ef761bfccbadbaa3da77366aac4185a6c58fa5de5f589b42a65bcc21f161"
+  },
+  {
+    "id": "wan-vae",
+    "repo": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+    "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+    "file": "split_files/vae/wan_2.1_vae.safetensors",
+    "path": "vae/wan_2.1_vae.safetensors",
+    "size": 253815318,
+    "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b"
+  },
+  {
+    "id": "wan-umt5",
+    "repo": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+    "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+    "file": "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+    "path": "text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+    "size": 6735906897,
+    "sha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68"
+  },
+  {
+    "id": "hunyuan-t2v",
+    "repo": "jayn7/HunyuanVideo-1.5_T2V_480p-GGUF",
+    "revision": "6aac325460d2f2cfe49ad8fb71f5ed2e4f1c5e24",
+    "file": "480p_distilled/hunyuanvideo1.5_480p_t2v_cfg_distilled-Q6_K.gguf",
+    "path": "diffusion_models/hunyuanvideo1.5_480p_t2v_cfg_distilled-Q6_K.gguf",
+    "size": 7024833760,
+    "sha256": "316f26559e0d3e00e8efcfade336215e4b42a3b7e4176cec938fea20c0037c77"
+  },
+  {
+    "id": "hunyuan-sigclip_vision_patch14_384.safetensors",
+    "repo": "Comfy-Org/HunyuanVideo_1.5_repackaged",
+    "revision": "1405a2b738c29b890cf6d03fc038d8d3e92eeed7",
+    "file": "split_files/clip_vision/sigclip_vision_patch14_384.safetensors",
+    "path": "clip_vision/sigclip_vision_patch14_384.safetensors",
+    "size": 856505640,
+    "sha256": "1fee501deabac72f0ed17610307d7131e3e9d1e838d0363aa3c2b97a6e03fb33"
+  },
+  {
+    "id": "hunyuan-byt5_small_glyphxl_fp16.safetensors",
+    "repo": "Comfy-Org/HunyuanVideo_1.5_repackaged",
+    "revision": "1405a2b738c29b890cf6d03fc038d8d3e92eeed7",
+    "file": "split_files/text_encoders/byt5_small_glyphxl_fp16.safetensors",
+    "path": "text_encoders/byt5_small_glyphxl_fp16.safetensors",
+    "size": 438643184,
+    "sha256": "516910bb4c9b225370290e40585d1b0e6c8cd3583690f7eec2f7fb593990fb48"
+  },
+  {
+    "id": "hunyuan-qwen_2.5_vl_7b_fp8_scaled.safetensors",
+    "repo": "Comfy-Org/HunyuanVideo_1.5_repackaged",
+    "revision": "1405a2b738c29b890cf6d03fc038d8d3e92eeed7",
+    "file": "split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors",
+    "path": "text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors",
+    "size": 9384670680,
+    "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4"
+  },
+  {
+    "id": "hunyuan-hunyuanvideo15_vae_fp16.safetensors",
+    "repo": "Comfy-Org/HunyuanVideo_1.5_repackaged",
+    "revision": "1405a2b738c29b890cf6d03fc038d8d3e92eeed7",
+    "file": "split_files/vae/hunyuanvideo15_vae_fp16.safetensors",
+    "path": "vae/hunyuanvideo15_vae_fp16.safetensors",
+    "size": 2521292758,
+    "sha256": "e7c3091949c27e2d55ae6d5df917b99dadfebbf308e5a50d0ade0d16c90297ae"
+  },
+  {
+    "id": "flux-realism-xlabs",
+    "repo": "XLabs-AI/flux-RealismLora",
+    "revision": "1965e17d2e745fcbf8f4004bdbdf603421ef37a8",
+    "file": "lora.safetensors",
+    "path": "loras/flux-realism-xlabs.safetensors",
+    "size": 22431400,
+    "sha256": "0a83a924b822b70b5e458d27935ebfa7713edaee04ff9f194209525354031eca"
+  },
+  {
+    "id": "flux-super-realism",
+    "repo": "strangerzonehf/Flux-Super-Realism-LoRA",
+    "revision": "321693353a5c05fe013ad431578d97e866159515",
+    "file": "super-realism.safetensors",
+    "path": "loras/flux-super-realism.safetensors",
+    "size": 612747744,
+    "sha256": "4eac4ce670b7d0a331e96c8a1973fe466c4179f7019e514555b1a30855e70090"
+  }
+]

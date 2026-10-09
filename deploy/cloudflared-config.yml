@@ -1,0 +1,8 @@
+tunnel: 722b7f98-42cc-44a5-97d1-001df6ec1c7d
+credentials-file: /home/raco-ai/.cloudflared/722b7f98-42cc-44a5-97d1-001df6ec1c7d.json
+protocol: http2
+
+ingress:
+  - hostname: gen.sajiid.me
+    service: http://127.0.0.1:8188
+  - service: http_status:404

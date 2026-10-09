@@ -1,0 +1,15 @@
+[Unit]
+Description=raco-gen ComfyUI
+After=network.target
+
+[Service]
+Type=simple
+User=raco-ai
+WorkingDirectory=/home/raco-ai/Documents/raco-gen/comfyui
+ExecStart=/home/raco-ai/Documents/raco-gen/comfyui/.venv/bin/python main.py --listen 127.0.0.1 --port 8188 --disable-auto-launch --reserve-vram 1 --disable-smart-memory --cache-none --disable-api-nodes
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

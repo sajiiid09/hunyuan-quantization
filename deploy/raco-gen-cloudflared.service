@@ -1,0 +1,14 @@
+[Unit]
+Description=raco-gen Cloudflare Tunnel
+After=network-online.target raco-gen-comfyui.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=raco-ai
+ExecStart=/home/raco-ai/.local/bin/cloudflared tunnel --config /home/raco-ai/.cloudflared/config.yml run raco-gen
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
