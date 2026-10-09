@@ -13,6 +13,7 @@ is left on the server unless --keep-on-server is passed.
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -162,30 +163,27 @@ def cmd_generate(args):
 
 
 def cmd_sync(args):
-    r = ssh_run(f"find {SERVER_OUTPUT} -type f 2>/dev/null", timeout=120)
-    server_files = [f for f in r.stdout.splitlines() if f.strip()]
-    if not server_files:
-        print("no files on server to sync")
-        return
     os.makedirs(args.output_dir, exist_ok=True)
-    for sf_path in server_files:
-        rel = os.path.relpath(sf_path, SERVER_OUTPUT)
-        fn = os.path.basename(rel)
-        subfolder = os.path.dirname(rel)
-        local_path = os.path.join(args.output_dir, f"sync_{fn}")
-        if os.path.exists(local_path):
-            print(f"skip {fn} (already local)")
-            continue
-        qs = urllib.parse.urlencode(
-            {"filename": fn, "subfolder": subfolder, "type": "output"}
-        )
-        data = api("GET", f"/view?{qs}", raw=True, timeout=300)
-        with open(local_path, "wb") as fh:
-            fh.write(data)
-        print(f"synced {local_path} ({len(data) / 1e6:.1f} MB)")
-        if not args.keep_on_server:
-            server_delete(subfolder, fn)
-    print("sync complete")
+    if not shutil.which("rsync"):
+        raise SystemExit("rsync is required for sync; install it and retry")
+
+    source = f"{SSH_HOST}:{SERVER_OUTPUT}/"
+    command = [
+        "rsync", "-a", "--checksum", "--backup", "--suffix=.local-backup",
+        "-e", "ssh -o BatchMode=yes",
+    ]
+    if not args.keep_on_server:
+        command.append("--remove-source-files")
+    command.extend([source, args.output_dir.rstrip(os.sep) + os.sep])
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=600)
+    except subprocess.TimeoutExpired:
+        raise SystemExit("sync timed out; completed files remain in the output folder")
+    if result.returncode:
+        detail = result.stderr.strip() or result.stdout.strip()
+        raise SystemExit(f"sync failed (server files were kept): {detail}")
+    print(f"sync complete — files saved under {args.output_dir}")
 
 
 def main():

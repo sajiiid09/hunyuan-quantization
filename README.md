@@ -69,14 +69,17 @@ python3 scripts/client/raco_gen.py generate \
   --workflow workflows/hunyuan-t2v.json --prompt "a red panda climbing a mossy tree"
 
 # Pull anything still sitting on the server (e.g. from the browser UI)
-python3 scripts/client/raco_gen.py sync
+python3 scripts/client/raco_gen.py sync --keep-on-server
 ```
 
 Outputs land in `~/Documents/raco-gen/output/` as `<prompt_id>_<file>`. Video is
 saved as `.webp` by the server and converted to H.264 `.mp4` locally. Pass
 `--keep-on-server` to leave a copy on the server. The browser UI at
 `https://gen.sajiid.me/` still renders on the server — use the client when you
-want the files to stay on your machine.
+want the files to stay on your machine. `sync` transfers files directly over SSH,
+preserves ComfyUI output subfolders, and keeps local backups when a server file with
+the same name has changed. Without `--keep-on-server`, successfully copied files are
+removed from the server.
 
 ## Repository layout
 

@@ -30,7 +30,7 @@ def download(model, destination):
     url = f"https://huggingface.co/{model['repo']}/resolve/{model['revision']}/{urllib.parse.quote(model['file'])}"
     partial = target.with_suffix(target.suffix + '.part')
     print('DOWNLOADING', model['id'], model['size'], flush=True)
-    subprocess.run(['curl', '--fail', '--location', '--silent', '--show-error',
+    subprocess.run(['curl', '--http1.1', '--fail', '--location', '--silent', '--show-error',
                     '--retry', '8', '--retry-delay', '5', '--connect-timeout', '30',
                     '--speed-limit', '1024', '--speed-time', '120',
                     '--continue-at', '-', '--output', str(partial), url], check=True)
