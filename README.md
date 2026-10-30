@@ -1,4 +1,4 @@
-# raco-gen
+# gen ai setup
 
 Self-hosted image & video generation server. Runs on a single RTX 4070 Ti (12 GB) and is
 reachable from anywhere through ComfyUI's web UI and native API at
